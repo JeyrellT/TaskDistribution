@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<!-- Developer: Jeyrell Tardencilla / JC Analytics -->
+<!-- LinkedIn: https://www.linkedin.com/in/jeyrelltardencilla/ -->
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#4f46e5">
+    <meta name="description" content="Distribution Manager - Sistema de gestión y distribución de leads">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="DistManager">
+    
+    <!-- Manifest PWA -->
+    <link rel="manifest" href="/manifest.json">
+    
+    <!-- Iconos -->
+    <link rel="icon" type="image/png" sizes="32x32" href="/icons/icon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/icons/icon-16x16.png">
+    <link rel="apple-touch-icon" href="/icons/icon-192x192.png">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="/css/main.css">
+    <link rel="stylesheet" href="/css/components.css">
+    
+    <title>Distribution Manager</title>
+    
+    <!-- Splash screens para iOS -->
+    <style>
+        /* Splash screen mientras carga */
+        #splash-screen {
+            position: fixed;
+            inset: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            transition: opacity 0.5s ease;
+        }
+        
+        #splash-screen.fade-out {
+            opacity: 0;
+            pointer-events: none;
+        }
+        
+        #splash-screen .logo {
+            width: 100px;
+            height: 100px;
+            background: white;
+            border-radius: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            margin-bottom: 24px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            animation: pulse-logo 2s ease-in-out infinite;
+        }
+        
+        @keyframes pulse-logo {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        
+        #splash-screen h1 {
+            color: white;
+            font-family: 'Inter', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        
+        #splash-screen p {
+            color: rgba(255,255,255,0.8);
+            font-family: 'Inter', sans-serif;
+            font-size: 0.9rem;
+        }
+        
+        #splash-screen .loader {
+            margin-top: 40px;
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <!-- Splash Screen -->
+    <div id="splash-screen">
+        <div class="logo">📊</div>
+        <h1>Distribution Manager</h1>
+        <p>Sistema de Gestión de Leads</p>
+        <div class="loader"></div>
+        <a href="diagnostics.html" id="splash-diagnostics" style="display:none; margin-top: 20px; color: white; font-size: 0.9rem; text-decoration: underline;">
+            🔧 Diagnóstico de Conexión
+        </a>
+    </div>
+
+    <!-- App Container -->
+    <div id="app">
+        <!-- Dynamic content will be injected here -->
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
+    <script src="/js/api.js"></script>
+    <script src="/js/auth.js"></script>
+    <script src="/js/ui.js"></script>
+    <script src="/js/app.js"></script>
+    
+    <script>
+        // Ocultar splash screen cuando la app esté lista
+        window.addEventListener('load', () => {
+            // Mostrar link de diagnóstico después de 3 segundos si no se ha cargado
+            setTimeout(() => {
+                const splash = document.getElementById('splash-screen');
+                const diagLink = document.getElementById('splash-diagnostics');
+                if (splash && diagLink) {
+                    diagLink.style.display = 'block';
+                }
+            }, 3000);
+            
+            setTimeout(() => {
+                const splash = document.getElementById('splash-screen');
+                splash.classList.add('fade-out');
+                setTimeout(() => splash.remove(), 500);
+            }, 1000);
+        });
+
+        // Prevenir zoom en iOS
+        document.addEventListener('gesturestart', function(e) {
+            e.preventDefault();
+        });
+
+        // Detectar si está instalada como PWA
+        if (window.matchMedia('(display-mode: standalone)').matches) {
+            document.body.classList.add('pwa-installed');
+        }
+    </script>
+</body>
+</html>

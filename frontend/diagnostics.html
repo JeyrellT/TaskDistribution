@@ -1,0 +1,996 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diagnóstico de Conexión - Distribution Manager</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-dark: #4338ca;
+            --primary-light: #eef2ff;
+            --success: #10b981;
+            --success-light: #d1fae5;
+            --danger: #ef4444;
+            --danger-light: #fee2e2;
+            --warning: #f59e0b;
+            --warning-light: #fef3c7;
+            --bg: #f3f4f6;
+            --card: #ffffff;
+            --text-main: #111827;
+            --text-muted: #6b7280;
+            --border: #e5e7eb;
+            --shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--text-main);
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 24px;
+        }
+
+        .container {
+            max-width: 800px;
+            width: 100%;
+        }
+
+        header {
+            background: linear-gradient(135deg, var(--primary), #8c52ff);
+            color: white;
+            padding: 32px;
+            border-radius: 24px;
+            box-shadow: var(--shadow);
+            margin-bottom: 24px;
+            text-align: center;
+        }
+
+        header h1 {
+            margin: 0 0 12px;
+            font-size: 1.8rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        header p {
+            margin: 0;
+            color: rgba(255, 255, 255, 0.85);
+        }
+
+        .card {
+            background: var(--card);
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            padding: 24px;
+            box-shadow: var(--shadow);
+            margin-bottom: 20px;
+        }
+
+        .card-title {
+            margin: 0 0 16px;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            font-size: 1rem;
+            font-family: inherit;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+        }
+
+        .input-group {
+            display: flex;
+            gap: 12px;
+        }
+
+        .input-group input {
+            flex: 1;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px 24px;
+            border-radius: 12px;
+            border: none;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s, background 0.2s;
+            font-family: inherit;
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+        }
+
+        .btn:active {
+            transform: scale(0.98);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background: var(--primary-dark);
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        }
+
+        .btn-lg {
+            padding: 16px 32px;
+            font-size: 1.1rem;
+            width: 100%;
+        }
+
+        /* Status Indicators */
+        .status-grid {
+            display: grid;
+            gap: 12px;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px;
+            border-radius: 12px;
+            background: #f8fafc;
+            border: 1px solid var(--border);
+            transition: all 0.3s ease;
+        }
+
+        .status-item.success {
+            background: var(--success-light);
+            border-color: var(--success);
+        }
+
+        .status-item.error {
+            background: var(--danger-light);
+            border-color: var(--danger);
+        }
+
+        .status-item.warning {
+            background: var(--warning-light);
+            border-color: var(--warning);
+        }
+
+        .status-item.pending {
+            background: var(--primary-light);
+            border-color: var(--primary);
+        }
+
+        .status-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            background: white;
+            flex-shrink: 0;
+        }
+
+        .status-item.success .status-icon {
+            background: var(--success);
+            color: white;
+        }
+
+        .status-item.error .status-icon {
+            background: var(--danger);
+            color: white;
+        }
+
+        .status-item.warning .status-icon {
+            background: var(--warning);
+            color: white;
+        }
+
+        .status-item.pending .status-icon {
+            background: var(--primary);
+            color: white;
+        }
+
+        .status-info {
+            flex: 1;
+        }
+
+        .status-info h4 {
+            margin: 0 0 4px;
+            font-size: 0.95rem;
+        }
+
+        .status-info p {
+            margin: 0;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        /* Spinner */
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        .spinner-dark {
+            border-color: rgba(79, 70, 229, 0.2);
+            border-top-color: var(--primary);
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Instructions */
+        .instructions {
+            background: #fffbeb;
+            border: 1px solid #fcd34d;
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 16px;
+        }
+
+        .instructions h4 {
+            margin: 0 0 12px;
+            color: #92400e;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .instructions ol {
+            margin: 0;
+            padding-left: 20px;
+            color: #78350f;
+        }
+
+        .instructions li {
+            margin-bottom: 8px;
+        }
+
+        .instructions code {
+            background: rgba(0, 0, 0, 0.1);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.9em;
+        }
+
+        /* Hidden */
+        .hidden {
+            display: none !important;
+        }
+
+        /* Success panel */
+        .success-panel {
+            text-align: center;
+            padding: 32px;
+        }
+
+        .success-panel .icon {
+            font-size: 4rem;
+            margin-bottom: 16px;
+        }
+
+        .success-panel h2 {
+            margin: 0 0 12px;
+            color: var(--success);
+        }
+
+        .success-panel p {
+            color: var(--text-muted);
+            margin-bottom: 24px;
+        }
+
+        /* Folder tree */
+        .folder-tree {
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.9rem;
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 16px 20px;
+            border-radius: 12px;
+            margin-top: 12px;
+        }
+
+        .folder-tree .folder {
+            color: #60a5fa;
+        }
+
+        .folder-tree .file {
+            color: #a3e635;
+        }
+
+        .folder-tree .missing {
+            color: #f87171;
+            text-decoration: line-through;
+        }
+
+        /* Quick tests */
+        .quick-tests {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+            margin-top: 16px;
+        }
+
+        .quick-test-btn {
+            padding: 12px;
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            background: white;
+            cursor: pointer;
+            text-align: left;
+            transition: all 0.2s;
+        }
+
+        .quick-test-btn:hover {
+            border-color: var(--primary);
+            background: var(--primary-light);
+        }
+
+        .quick-test-btn .test-icon {
+            font-size: 1.5rem;
+            margin-bottom: 8px;
+        }
+
+        .quick-test-btn .test-name {
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .quick-test-btn .test-desc {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        /* Server config section */
+        .server-saved {
+            background: var(--success-light);
+            border: 1px solid var(--success);
+            border-radius: 12px;
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .server-saved .saved-url {
+            flex: 1;
+            font-family: 'Consolas', monospace;
+            font-weight: 600;
+            color: #065f46;
+        }
+
+        .server-saved .btn-change {
+            padding: 8px 16px;
+            font-size: 0.85rem;
+        }
+
+        /* Log console */
+        .log-console {
+            background: #1e293b;
+            border-radius: 12px;
+            padding: 16px;
+            max-height: 200px;
+            overflow-y: auto;
+            font-family: 'Consolas', monospace;
+            font-size: 0.85rem;
+            margin-top: 16px;
+        }
+
+        .log-entry {
+            margin-bottom: 6px;
+            display: flex;
+            gap: 8px;
+        }
+
+        .log-entry .time {
+            color: #64748b;
+        }
+
+        .log-entry .msg {
+            color: #e2e8f0;
+        }
+
+        .log-entry.success .msg {
+            color: #4ade80;
+        }
+
+        .log-entry.error .msg {
+            color: #f87171;
+        }
+
+        .log-entry.warning .msg {
+            color: #fbbf24;
+        }
+
+        .log-entry.info .msg {
+            color: #60a5fa;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🔌 Diagnóstico de Conexión</h1>
+            <p>Verifica la conexión al servidor LAN y la estructura de carpetas antes de usar la aplicación</p>
+        </header>
+
+        <!-- Step 1: Server Connection -->
+        <div class="card" id="step-connection">
+            <h3 class="card-title">📡 Paso 1: Conexión al Servidor</h3>
+            
+            <div id="server-config-form">
+                <div class="form-group">
+                    <label for="serverUrl">URL del Servidor LAN</label>
+                    <div class="input-group">
+                        <input type="text" id="serverUrl" placeholder="http://172.168.89.173:3000" value="http://172.168.89.173:3000">
+                        <button class="btn btn-primary" id="btnTestConnection" onclick="testConnection()">
+                            🔍 Probar
+                        </button>
+                    </div>
+                </div>
+                <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0;">
+                    💡 Ingresa la IP de tu servidor LAN donde está corriendo el backend Node.js
+                </p>
+            </div>
+
+            <div id="connection-result" class="hidden">
+                <!-- Dynamic content -->
+            </div>
+        </div>
+
+        <!-- Step 2: Folder Structure -->
+        <div class="card hidden" id="step-folders">
+            <h3 class="card-title">📁 Paso 2: Estructura de Carpetas</h3>
+            
+            <div class="status-grid" id="folder-status">
+                <!-- Dynamic content -->
+            </div>
+
+            <div class="folder-tree" id="folder-tree">
+                <div>📂 <span class="folder">data/</span></div>
+                <div>&nbsp;&nbsp;├── 📁 <span class="folder" id="tree-main">Main/</span></div>
+                <div>&nbsp;&nbsp;├── 📁 <span class="folder" id="tree-tracking">Tracking/</span></div>
+                <div>&nbsp;&nbsp;├── 📁 <span class="folder" id="tree-rawdata">RawData/</span></div>
+                <div>&nbsp;&nbsp;└── 📁 <span class="folder" id="tree-historical">Historical/</span></div>
+            </div>
+        </div>
+
+        <!-- Step 3: Quick Tests -->
+        <div class="card hidden" id="step-tests">
+            <h3 class="card-title">🧪 Paso 3: Pruebas Rápidas</h3>
+            
+            <div class="quick-tests">
+                <button class="quick-test-btn" onclick="runTest('auth')">
+                    <div class="test-icon">🔐</div>
+                    <div class="test-name">Autenticación</div>
+                    <div class="test-desc">Verificar login/logout</div>
+                </button>
+                <button class="quick-test-btn" onclick="runTest('read')">
+                    <div class="test-icon">📖</div>
+                    <div class="test-name">Lectura</div>
+                    <div class="test-desc">Leer archivo Main</div>
+                </button>
+                <button class="quick-test-btn" onclick="runTest('write')">
+                    <div class="test-icon">✏️</div>
+                    <div class="test-name">Escritura</div>
+                    <div class="test-desc">Crear archivo test</div>
+                </button>
+                <button class="quick-test-btn" onclick="runTest('tracking')">
+                    <div class="test-icon">👥</div>
+                    <div class="test-name">Tracking</div>
+                    <div class="test-desc">Ver personas</div>
+                </button>
+            </div>
+
+            <div class="log-console" id="test-log">
+                <div class="log-entry info">
+                    <span class="time">[--:--:--]</span>
+                    <span class="msg">Esperando pruebas...</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Instructions Panel -->
+        <div class="card hidden" id="instructions-panel">
+            <h3 class="card-title">📋 Instrucciones de Configuración</h3>
+            <div id="instructions-content">
+                <!-- Dynamic content -->
+            </div>
+        </div>
+
+        <!-- Success Panel -->
+        <div class="card hidden" id="success-panel">
+            <div class="success-panel">
+                <div class="icon">✅</div>
+                <h2>¡Todo Configurado!</h2>
+                <p>La conexión al servidor LAN está funcionando correctamente y todas las carpetas están disponibles.</p>
+                <button class="btn btn-success btn-lg" onclick="goToApp()">
+                    🚀 Iniciar Aplicación
+                </button>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer style="text-align: center; padding: 20px; color: var(--text-muted); font-size: 0.85rem;">
+            Distribution Manager PWA - JC Analytics © 2025
+        </footer>
+    </div>
+
+    <script>
+        // ============================================================
+        // STATE
+        // ============================================================
+        let serverUrl = localStorage.getItem('dm_server_url') || 'http://172.168.89.173:3000';
+        let connectionStatus = 'pending'; // pending, success, error
+        let folderStatus = {
+            Main: 'pending',
+            Tracking: 'pending',
+            RawData: 'pending',
+            Historical: 'pending'
+        };
+
+        // ============================================================
+        // INITIALIZATION
+        // ============================================================
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('serverUrl').value = serverUrl;
+            
+            // Auto-test if we have a saved URL
+            if (localStorage.getItem('dm_server_url')) {
+                testConnection();
+            }
+        });
+
+        // ============================================================
+        // CONNECTION TEST
+        // ============================================================
+        async function testConnection() {
+            const urlInput = document.getElementById('serverUrl');
+            const btn = document.getElementById('btnTestConnection');
+            const resultDiv = document.getElementById('connection-result');
+            
+            serverUrl = urlInput.value.trim().replace(/\/$/, ''); // Remove trailing slash
+            
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner"></span> Probando...';
+            resultDiv.classList.remove('hidden');
+            
+            resultDiv.innerHTML = `
+                <div class="status-item pending">
+                    <div class="status-icon"><span class="spinner spinner-dark"></span></div>
+                    <div class="status-info">
+                        <h4>Conectando...</h4>
+                        <p>Probando conexión a ${serverUrl}</p>
+                    </div>
+                </div>
+            `;
+
+            try {
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
+
+                const response = await fetch(`${serverUrl}/api/health`, {
+                    method: 'GET',
+                    signal: controller.signal
+                });
+
+                clearTimeout(timeoutId);
+
+                if (response.ok) {
+                    const data = await response.json();
+                    connectionStatus = 'success';
+                    
+                    // Save URL
+                    localStorage.setItem('dm_server_url', serverUrl);
+                    
+                    resultDiv.innerHTML = `
+                        <div class="status-item success">
+                            <div class="status-icon">✅</div>
+                            <div class="status-info">
+                                <h4>Conexión Exitosa</h4>
+                                <p>Servidor: ${serverUrl} | Status: ${data.status}</p>
+                            </div>
+                        </div>
+                    `;
+
+                    // Show next step
+                    document.getElementById('step-folders').classList.remove('hidden');
+                    await checkFolderStructure();
+                    
+                } else {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+            } catch (error) {
+                connectionStatus = 'error';
+                let errorMessage = 'Error desconocido';
+                let helpText = '';
+
+                if (error.name === 'AbortError') {
+                    errorMessage = 'Timeout - El servidor no respondió en 10 segundos';
+                    helpText = 'Verifica que el servidor esté corriendo y la IP sea correcta.';
+                } else if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
+                    errorMessage = 'No se pudo conectar al servidor';
+                    helpText = 'Verifica que: 1) El servidor Node.js esté corriendo, 2) La VPN esté activa, 3) La IP sea correcta.';
+                } else {
+                    errorMessage = error.message;
+                }
+
+                resultDiv.innerHTML = `
+                    <div class="status-item error">
+                        <div class="status-icon">❌</div>
+                        <div class="status-info">
+                            <h4>Error de Conexión</h4>
+                            <p>${errorMessage}</p>
+                        </div>
+                    </div>
+                `;
+
+                // Show instructions
+                showInstructions('connection', { serverUrl, error: errorMessage });
+            }
+
+            btn.disabled = false;
+            btn.innerHTML = '🔍 Probar';
+        }
+
+        // ============================================================
+        // FOLDER STRUCTURE CHECK
+        // ============================================================
+        async function checkFolderStructure() {
+            const statusGrid = document.getElementById('folder-status');
+            
+            statusGrid.innerHTML = `
+                <div class="status-item pending">
+                    <div class="status-icon"><span class="spinner spinner-dark"></span></div>
+                    <div class="status-info">
+                        <h4>Verificando estructura...</h4>
+                        <p>Obteniendo información de carpetas</p>
+                    </div>
+                </div>
+            `;
+
+            try {
+                // First, try to login with default credentials for testing
+                const token = await getTestToken();
+                
+                const response = await fetch(`${serverUrl}/api/files/structure`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+
+                const data = await response.json();
+                const structure = data.structure;
+
+                let html = '';
+                let allOk = true;
+                const folders = ['Main', 'Tracking', 'RawData', 'Historical'];
+
+                for (const folder of folders) {
+                    const exists = structure[folder] !== undefined;
+                    const isEmpty = exists && (
+                        Array.isArray(structure[folder]) ? structure[folder].length === 0 :
+                        Object.keys(structure[folder]).length === 0
+                    );
+                    
+                    let status = 'success';
+                    let icon = '✅';
+                    let message = 'Disponible';
+                    
+                    if (!exists) {
+                        status = 'error';
+                        icon = '❌';
+                        message = 'No encontrada';
+                        allOk = false;
+                        document.getElementById(`tree-${folder.toLowerCase()}`).classList.add('missing');
+                    } else if (isEmpty) {
+                        status = 'warning';
+                        icon = '⚠️';
+                        message = 'Vacía';
+                    }
+
+                    folderStatus[folder] = status;
+
+                    const count = exists ? (
+                        Array.isArray(structure[folder]) ? structure[folder].length :
+                        Object.keys(structure[folder]).length
+                    ) : 0;
+
+                    html += `
+                        <div class="status-item ${status}">
+                            <div class="status-icon">${icon}</div>
+                            <div class="status-info">
+                                <h4>${folder}/</h4>
+                                <p>${message}${count > 0 ? ` - ${count} elementos` : ''}</p>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                statusGrid.innerHTML = html;
+
+                // Show tests step
+                document.getElementById('step-tests').classList.remove('hidden');
+
+                if (allOk) {
+                    // All good!
+                    document.getElementById('success-panel').classList.remove('hidden');
+                } else {
+                    showInstructions('folders', { folderStatus });
+                }
+
+            } catch (error) {
+                statusGrid.innerHTML = `
+                    <div class="status-item error">
+                        <div class="status-icon">❌</div>
+                        <div class="status-info">
+                            <h4>Error al verificar carpetas</h4>
+                            <p>${error.message}</p>
+                        </div>
+                    </div>
+                `;
+                showInstructions('auth', { error: error.message });
+            }
+        }
+
+        // ============================================================
+        // GET TEST TOKEN
+        // ============================================================
+        async function getTestToken() {
+            try {
+                const response = await fetch(`${serverUrl}/api/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: 'admin', password: 'admin123' })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Login failed');
+                }
+
+                const data = await response.json();
+                return data.token;
+            } catch (error) {
+                throw new Error('No se pudo autenticar con credenciales de prueba');
+            }
+        }
+
+        // ============================================================
+        // QUICK TESTS
+        // ============================================================
+        async function runTest(testType) {
+            const logConsole = document.getElementById('test-log');
+            
+            log('info', `Iniciando prueba: ${testType}`);
+
+            try {
+                const token = await getTestToken();
+
+                switch (testType) {
+                    case 'auth':
+                        log('info', 'Probando autenticación...');
+                        const authRes = await fetch(`${serverUrl}/api/auth/me`, {
+                            headers: { 'Authorization': `Bearer ${token}` }
+                        });
+                        if (authRes.ok) {
+                            const user = await authRes.json();
+                            log('success', `✅ Autenticado como: ${user.user.name} (${user.user.role})`);
+                        } else {
+                            throw new Error('Auth failed');
+                        }
+                        break;
+
+                    case 'read':
+                        log('info', 'Intentando leer archivo Main...');
+                        const readRes = await fetch(`${serverUrl}/api/files/main`, {
+                            headers: { 'Authorization': `Bearer ${token}` }
+                        });
+                        if (readRes.ok) {
+                            const data = await readRes.json();
+                            if (data.exists) {
+                                log('success', `✅ Archivo Main leído: ${data.fileName} (${data.totalRows} filas)`);
+                            } else {
+                                log('warning', '⚠️ No hay archivo Main todavía');
+                            }
+                        } else {
+                            throw new Error('Read failed');
+                        }
+                        break;
+
+                    case 'write':
+                        log('info', 'Probando escritura (RawData)...');
+                        log('warning', '⚠️ Prueba de escritura requiere archivo - Saltando');
+                        break;
+
+                    case 'tracking':
+                        log('info', 'Obteniendo carpetas de Tracking...');
+                        const trackRes = await fetch(`${serverUrl}/api/files/structure`, {
+                            headers: { 'Authorization': `Bearer ${token}` }
+                        });
+                        if (trackRes.ok) {
+                            const data = await trackRes.json();
+                            const tracking = data.structure.Tracking || {};
+                            const people = Object.keys(tracking);
+                            if (people.length > 0) {
+                                log('success', `✅ Personas en Tracking: ${people.join(', ')}`);
+                            } else {
+                                log('warning', '⚠️ No hay personas en Tracking todavía');
+                            }
+                        } else {
+                            throw new Error('Tracking read failed');
+                        }
+                        break;
+                }
+
+            } catch (error) {
+                log('error', `❌ Error: ${error.message}`);
+            }
+        }
+
+        function log(type, message) {
+            const logConsole = document.getElementById('test-log');
+            const time = new Date().toLocaleTimeString();
+            
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type}`;
+            entry.innerHTML = `
+                <span class="time">[${time}]</span>
+                <span class="msg">${message}</span>
+            `;
+            
+            logConsole.appendChild(entry);
+            logConsole.scrollTop = logConsole.scrollHeight;
+        }
+
+        // ============================================================
+        // SHOW INSTRUCTIONS
+        // ============================================================
+        function showInstructions(type, data) {
+            const panel = document.getElementById('instructions-panel');
+            const content = document.getElementById('instructions-content');
+            
+            panel.classList.remove('hidden');
+
+            let html = '';
+
+            switch (type) {
+                case 'connection':
+                    html = `
+                        <div class="instructions">
+                            <h4>⚠️ No se pudo conectar al servidor</h4>
+                            <p>Sigue estos pasos para configurar el servidor:</p>
+                            <ol>
+                                <li>Asegúrate de que tu <strong>VPN esté activa</strong> si estás fuera de la red local</li>
+                                <li>En el servidor LAN (${data.serverUrl.split(':')[1].replace('//', '')}), abre una terminal</li>
+                                <li>Navega a la carpeta del proyecto:
+                                    <code>cd C:\\ruta\\distribution-manager-pwa\\backend</code>
+                                </li>
+                                <li>Instala dependencias (primera vez):
+                                    <code>npm install</code>
+                                </li>
+                                <li>Inicia el servidor:
+                                    <code>npm start</code>
+                                </li>
+                                <li>Verifica que muestre: <code>Server running on http://0.0.0.0:3000</code></li>
+                                <li>Vuelve aquí y presiona <strong>Probar</strong> nuevamente</li>
+                            </ol>
+                        </div>
+                    `;
+                    break;
+
+                case 'folders':
+                    const missing = Object.entries(data.folderStatus)
+                        .filter(([_, status]) => status === 'error')
+                        .map(([name, _]) => name);
+                    
+                    html = `
+                        <div class="instructions">
+                            <h4>⚠️ Carpetas faltantes: ${missing.join(', ')}</h4>
+                            <p>Crea las carpetas faltantes en el servidor:</p>
+                            <ol>
+                                <li>En el servidor, navega a la carpeta <code>data/</code> del proyecto</li>
+                                <li>Crea las siguientes carpetas:
+                                    <ul>
+                                        ${missing.map(f => `<li><code>${f}/</code></li>`).join('')}
+                                    </ul>
+                                </li>
+                                <li>Recarga esta página para verificar</li>
+                            </ol>
+                        </div>
+                    `;
+                    break;
+
+                case 'auth':
+                    html = `
+                        <div class="instructions">
+                            <h4>⚠️ Error de autenticación</h4>
+                            <p>Verifica la configuración del servidor:</p>
+                            <ol>
+                                <li>Asegúrate de que el archivo <code>.env</code> existe en <code>backend/</code></li>
+                                <li>Verifica que contiene las credenciales de usuarios</li>
+                                <li>Reinicia el servidor Node.js</li>
+                            </ol>
+                        </div>
+                    `;
+                    break;
+            }
+
+            content.innerHTML = html;
+        }
+
+        // ============================================================
+        // GO TO APP
+        // ============================================================
+        function goToApp() {
+            window.location.href = 'index.html';
+        }
+    </script>
+</body>
+</html>
